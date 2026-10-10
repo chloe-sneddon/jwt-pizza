@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
-import { test, expect } from 'playwright-test-coverage';
+// import { test, expect } from 'playwright-test-coverage';
+import { test, expect } from './testSetup';
 import { Order, Role, User } from '../src/service/pizzaService';
 
 async function basicInit(page: Page, role: Role = Role.Diner, orders: Order[] = []) {
