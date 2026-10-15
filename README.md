@@ -10,7 +10,7 @@ A JSON Web Token, or [JWT](https://jwt.io/introduction), (pronounced JOT) is a d
 
 You can see a working example of the application at [pizza.cs329.click](https://pizza.cs329.click)
 
-## Running locally
+## Running locally 
 
 1. Fork this repository ![Fork repo](forkRepo.png)
 
