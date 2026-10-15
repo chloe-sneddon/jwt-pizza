@@ -1,5 +1,7 @@
 import { test, expect } from 'playwright-test-coverage';
 
+test.describe.configure({ mode: 'serial' });
+
 test('updateUserDiner', async ({ page }) => {
     const email = `user${Math.floor(Math.random() * 10000)}@jwt.com`;
     await page.goto('/');
@@ -148,4 +150,40 @@ test('updateUserFranchisee', async ({ page }) => {
     await page.locator('[role="dialog"] input').nth(2).fill('franchisee');
     await page.getByRole('button', { name: 'Update' }).click();
     await page.waitForSelector('[role="dialog"].hidden', { state: 'attached' });
+});
+
+test('admin can list and delete a registered user through the backend', async ({ page }) => {
+    const suffix = `${Date.now()}${Math.floor(Math.random() * 10000)}`;
+    const name = `Integration User ${suffix}`;
+    const email = `integration${suffix}@jwt.com`;
+
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Register' }).click();
+    await page.getByRole('textbox', { name: 'Full name' }).fill(name);
+    await page.getByRole('textbox', { name: 'Email address' }).fill(email);
+    await page.getByRole('textbox', { name: 'Password' }).fill('integration-test');
+    await page.getByRole('button', { name: 'Register' }).click();
+
+    await page.getByRole('link', { name: 'Logout' }).click();
+    await page.getByRole('link', { name: 'Login', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Email address' }).fill('a@jwt.com');
+    await page.getByRole('textbox', { name: 'Password' }).fill('admin');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('link', { name: 'Admin' }).click();
+
+    await page.getByPlaceholder('Filter users by name').fill(name);
+    const listResponsePromise = page.waitForResponse((response) => {
+        const url = new URL(response.url());
+        return response.request().method() === 'GET' &&
+            url.pathname === '/api/user' &&
+            url.searchParams.get('name') === `*${name}*`;
+    });
+    await page.getByRole('button', { name: 'Filter users' }).click();
+    const listResponse = await listResponsePromise;
+    expect(listResponse.status()).toBe(200);
+    await expect(page.getByRole('main')).toContainText(email);
+    await expect(page.getByRole('main')).toContainText('diner');
+
+    await page.getByRole('button', { name: `Delete ${name}` }).click();
+    await expect(page.getByRole('main')).not.toContainText(email);
 });

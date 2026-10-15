@@ -28,6 +28,11 @@ async function basicInit(page: Page, role: Role = Role.Diner, orders: Order[] = 
     await route.fulfill({ json: loggedInUser });
   });
 
+  await page.route(/\/api\/user(?:\?.*)?$/, async (route) => {
+    expect(route.request().method()).toBe('GET');
+    await route.fulfill({ json: { users: [], more: false } });
+  });
+
   await page.route('*/**/api/order/menu', async (route) => {
     const menuRes = [
       { id: 1, title: 'Veggie', image: 'pizza1.png', price: 0.0038, description: 'A garden of delight' },
